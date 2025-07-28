@@ -84,6 +84,8 @@ The Intelligent Document Analyst is designed to be easily deployed and run withi
 
 2.  **Navigate to the Project Root:** Open your terminal or command prompt and navigate to the `your_project_root/` directory.
 
+NOTE: add all the pdfs and challenge1b_input.json before building it.
+
 3.  **Build the Image:** Execute the following command to build the Docker image. This process might take a few minutes as it downloads the base Python image, installs dependencies, and downloads the spaCy model.
 
     ```bash
@@ -94,56 +96,9 @@ The Intelligent Document Analyst is designed to be easily deployed and run withi
 
     Upon successful completion, you will have a Docker image ready to run your application.
 
+### How to Run ###
 
-### 💻 Local Execution Guide
+docker run -v "$(pwd)/output":/app/output intelligent-document-analyst
 
-This guide explains how to set up and run the Intelligent Document Analyst directly on your local machine, without relying on Docker containers.
+The output challenge1b_output.json file will be created in output folder
 
-#### Prerequisites
-
-1.  **Python 3.9+**: Ensure you have Python 3.9 or a newer version installed on your system. You can download it from [python.org](https://www.python.org/downloads/).
-2.  **Internet Connection**: Required for downloading Python packages and the spaCy language model.
-
-#### Project Setup & Working Directory
-
-First, ensure your project directory is structured as follows on your local machine:
-
-* Your terminal's **working directory** when executing commands should be `your_project_root/`.
-
-#### Install Dependencies
-
-1.  **Navigate to Project Root**: Open your terminal or command prompt and change your directory to `your_project_root/`.
-
-2.  **Install Python Packages**: Install all the required Python libraries using `pip`. It's highly recommended to use a [virtual environment](https://docs.python.org/3/library/venv.html) to manage your project's dependencies cleanly.
-
-    ```bash
-    # (Optional) Create and activate a virtual environment
-    python3 -m venv venv
-    source venv/bin/activate # On Windows: .\venv\Scripts\activate
-
-    # Install dependencies
-    pip install -r requirements.txt
-    ```
-
-3.  **Download spaCy Model**: After installing the Python packages, you need to download the specific spaCy language model (`en_core_web_sm`) used by the application.
-
-    ```bash
-    python3 -m spacy download en_core_web_sm
-    ```
-
-#### How to Run the Application
-
-Once the prerequisites are met, and dependencies are installed, you can run the `run.py` script.
-
-1.  **Ensure Input Data is Prepared**: As described in the "Project Setup & Working Directory" section, make sure your `input/` directory contains all necessary PDFs, `job.txt`, `persona.txt`, and `config.json`.
-
-2.  **Execute from Project Root**: From your `your_project_root/` directory in the terminal, run the following command:
-
-    ```bash
-    python3 run.py --input_dir ./input --output ./output/results.json
-    ```
-    * `python3 run.py`: Invokes your Python script.
-    * `--input_dir ./input`: This argument tells the script that all its input files (documents, job, persona, config) are located in the local `./input` directory relative to where you run the command.
-    * `--output ./output/results.json`: This argument tells the script to save the final JSON output to a file named `results.json` inside the local `output/` directory.
-
-The script will begin processing, and you will see output in your terminal indicating its progress. Upon successful completion, `results.json` will be generated in your `output/` directory.

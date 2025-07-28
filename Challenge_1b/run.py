@@ -491,8 +491,10 @@ def generate_output_json(input_documents, persona, job_to_be_done, extracted_sec
 
 def main():
     parser = argparse.ArgumentParser(description="Intelligent Document Analyst")
-    parser.add_argument("--input_dir", type=str, required=True,
-                        help="Path to the input directory containing 'documents/', 'job.txt', and 'persona.txt'.")
+    parser.add_argument("--input_file", type=str, required=True,
+                        help="Path to the input JSON file (e.g., challenge1b_input.json).")
+    parser.add_argument("--pdf_dir", type=str, required=True,
+                        help="Path to the directory containing PDF documents (e.g., PDFs/).")
     parser.add_argument("--output", type=str, required=True,
                         help="Path to save the output JSON file.")
     parser.add_argument("--config_file", type=str, default="input/config.json",
@@ -529,43 +531,38 @@ def main():
 
     start_time = time.time()
 
-    documents_path = os.path.join(args.input_dir, "documents")
-    persona_file_path = os.path.join(args.input_dir, "persona.txt")
-    job_file_path = os.path.join(args.input_dir, "job.txt")
-
-    persona_description = ""
-    job_to_be_done = ""
-
+    # Read the input JSON file
     try:
-        with open(persona_file_path, 'r', encoding='utf-8') as f:
-            persona_description = f.read().strip()
-        print(f"Persona loaded from: {persona_file_path}")
+        with open(args.input_file, 'r', encoding='utf-8') as f:
+            input_data = json.load(f)
+        print(f"Input data loaded from {args.input_file}")
     except FileNotFoundError:
-        print(f"Error: persona.txt not found at {persona_file_path}. Please ensure it exists.")
+        print(f"Error: Input file {args.input_file} not found.")
         return
-    except Exception as e:
-        print(f"Error reading persona.txt: {e}")
+    except json.JSONDecodeError as e:
+        print(f"Error decoding input JSON file {args.input_file}: {e}. Please check JSON syntax.")
         return
 
-    try:
-        with open(job_file_path, 'r', encoding='utf-8') as f:
-            job_to_be_done = f.read().strip()
-        print(f"Job-to-be-Done loaded from: {job_file_path}")
-    except FileNotFoundError:
-        print(f"Error: job.txt not found at {job_file_path}. Please ensure it exists.")
-        return
-    except Exception as e:
-        print(f"Error reading job.txt: {e}")
-        return
+    # Extract persona, job_to_be_done, and document information from the input JSON
+    persona_description = input_data["persona"]["role"]
+    job_to_be_done = input_data["job_to_be_done"]["task"]
+    input_documents_info = input_data["documents"]
 
     if not persona_description:
         print("Warning: Persona description is empty. This may affect relevance.")
     if not job_to_be_done:
         print("Warning: Job-to-be-Done is empty. This may affect relevance.")
 
-    document_paths = glob.glob(os.path.join(documents_path, "*.pdf"))
+    document_paths = []
+    for doc_info in input_documents_info:
+        doc_path = os.path.join(args.pdf_dir, doc_info["filename"])
+        if os.path.exists(doc_path):
+            document_paths.append(doc_path)
+        else:
+            print(f"Warning: Document '{doc_info['filename']}' not found at '{doc_path}'. Skipping.")
+
     if not document_paths:
-        print(f"Error: No PDF documents found in {documents_path}. Please place PDFs inside this directory.")
+        print(f"Error: No PDF documents found based on the input JSON and PDF directory {args.pdf_dir}. Please ensure the files exist.")
         return
 
     print(f"Starting analysis for {len(document_paths)} documents.")
@@ -603,9 +600,9 @@ def main():
     )
     print(f"Sub-section analysis complete for {len(subsection_analysis_results)} top sections.")
 
-    input_doc_filenames = [os.path.basename(p) for p in document_paths]
+    # Pass the original documents info from the JSON to generate_output_json
     output_json = generate_output_json(
-        input_doc_filenames,
+        input_documents_info, # Use the document info from the input JSON
         persona_description,
         job_to_be_done,
         ranked_sections,
