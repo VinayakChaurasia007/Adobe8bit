@@ -86,7 +86,8 @@ sample_dataset/schema/output_schema.json
 - [x] Execution finishes under 10 seconds for 50-page files  
 - [x] Memory usage ≤ 16 GB  
 - [x] No internet access required at runtime  
-- [x] Compatible with AMD64 CPU (8 cores)  
+- [x] Compatible with AMD64 CPU (8 cores)
+- [x] Multilingual support 
 
 ---
 
