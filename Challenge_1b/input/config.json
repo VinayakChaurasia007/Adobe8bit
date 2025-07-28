@@ -1,0 +1,96 @@
+{
+    "MODEL_PATH": "./model_weights/bge-base-en-v1.5",
+    "SPACY_MODEL_NAME": "en_core_web_sm",
+
+    "MIN_SECTION_LENGTH": 50,
+    "MAX_SECTION_LENGTH": 4000,
+    "MAX_SENTENCES_FOR_REFINED_TEXT": 3,
+    "TOP_N_SECTIONS_FOR_ANALYSIS": 5,
+
+    "QUERY_PREFIX": "Represent this sentence for searching relevant passages:",
+    "DOCUMENT_PREFIX": "Represent this passage for searching relevant passages:",
+
+    "GENERAL_NEGATION_PATTERNS": [
+        "not\\s+(.+)",
+        "without\\s+(.+)",
+        "excluding\\s+(.+)",
+        "exclude\\s+(.+)",
+        "no\\s+(.+)",
+        "free\\s+of\\s+(.+)",
+        "do not include\\s+(.+)",
+        "avoid\\s+(.+)"
+    ],
+
+    "CATEGORY_ASPECTS": {
+        "non-vegetarian": {
+            "query_triggers": ["non-vegetarian", "meat", "poultry", "fish", "seafood", "beef", "pork", "lamb"],
+            "positive_semantic_space": "dishes containing meat, chicken recipes, beef meals, fish, seafood, lamb, pork, turkey, grilled meats, roasted dishes, animal protein sources",
+            "negative_semantic_space": null
+        },
+        "vegetarian": {
+            "query_triggers": ["vegetarian", "veg", "plant-based", "meat-free", "vegan"],
+            "positive_semantic_space": "plant-based dishes, vegetable recipes, tofu, lentils, beans, dairy, eggs, vegetarian protein sources, vegan options",
+            "negative_semantic_space": "dishes containing meat, chicken, beef, pork, fish, seafood, animal products, gelatin, bone broth, non-vegetarian food"
+        },
+        "gluten-free": {
+            "query_triggers": ["gluten-free", "no gluten", "celiac-friendly"],
+            "positive_semantic_space": "gluten-free ingredients, gluten-free recipes, rice flour, almond flour, corn flour, gluten-free bread, gluten-free pasta",
+            "negative_semantic_space": "wheat, barley, rye, bread, pasta, pastries, malt, gluten-containing grains, traditional flour-based items"
+        },
+        "dairy-free": {
+            "query_triggers": ["dairy-free", "no dairy", "lactose-free"],
+            "positive_semantic_space": "almond milk, soy milk, coconut products, non-dairy cheese, vegan yogurt",
+            "negative_semantic_space": "milk, cheese, butter, yogurt, cream, lactose, whey, casein"
+        },
+        "legal": {
+            "query_triggers": ["legal document", "contract", "agreement", "regulation", "statute", "law", "court", "judicial"],
+            "positive_semantic_space": "legal terms, clauses, contracts, regulations, statutory requirements, litigation, legal precedents, court rulings, case law, jurisprudence",
+            "negative_semantic_space": "informal discussion, casual conversation, personal opinions, creative writing, fictional narratives, non-binding agreements"
+        },
+        "technical specifications": {
+            "query_triggers": ["technical specifications", "data sheet", "specs", "technical details", "engineering", "design", "performance"],
+            "positive_semantic_space": "technical parameters, performance data, dimensions, operating conditions, circuit diagrams, engineering details, schematics, material properties, system architecture",
+            "negative_semantic_space": "marketing material, subjective reviews, emotional descriptions, fictional narratives, general news articles, financial statements"
+        },
+        "financial report": {
+            "query_triggers": ["financial report", "earnings report", "balance sheet", "income statement", "audit", "revenue", "profit", "investment"],
+            "positive_semantic_space": "revenue, profit, loss, assets, liabilities, equity, financial statements, accounting principles, balance sheet, income statement, cash flow, investment strategies, market trends",
+            "negative_semantic_space": "personal spending, fictional accounts, general economic news, political commentary, non-financial data, technical specifications"
+        },
+        "methodologies": {
+            "query_triggers": ["methodologies", "methods", "approaches", "techniques", "frameworks"],
+            "positive_semantic_space": "research methods, experimental design, data collection techniques, analytical procedures, statistical approaches, algorithmic frameworks, research protocols",
+            "negative_semantic_space": "results, conclusions, experimental data, findings, raw data, subjective interpretations"
+        },
+        "datasets": {
+            "query_triggers": ["datasets", "data", "corpus", "data collection", "data sources"],
+            "positive_semantic_space": "data sources, data collection methods, dataset characteristics, data structure, experimental data, raw data, sample size, data types",
+            "negative_semantic_space": "methodologies, conclusions, discussion, experimental setup, theoretical concepts"
+        },
+        "performance benchmarks": {
+            "query_triggers": ["performance benchmarks", "benchmarking", "metrics", "evaluation", "accuracy", "efficiency", "speed"],
+            "positive_semantic_space": "performance metrics, evaluation results, accuracy rates, efficiency measures, speed tests, benchmark comparisons, experimental outcomes, F1-score, precision, recall",
+            "negative_semantic_space": "methodologies, dataset descriptions, theoretical background, future work, qualitative analysis"
+        },
+        "key concepts": {
+            "query_triggers": ["key concepts", "main ideas", "core principles", "fundamental concepts"],
+            "positive_semantic_space": "definitions, fundamental principles, core theories, basic ideas, essential knowledge, main topics, central themes",
+            "negative_semantic_space": "detailed examples, specific calculations, advanced applications, tangential information, historical context"
+        },
+        "mechanisms": {
+            "query_triggers": ["mechanisms", "process", "how it works", "steps"],
+            "positive_semantic_space": "reaction pathways, molecular interactions, step-by-step processes, operational sequences, underlying principles, causal relationships, chemical reactions",
+            "negative_semantic_space": "experimental results, performance metrics, historical background, theoretical derivations"
+        },
+        "reaction kinetics": {
+            "query_triggers": ["reaction kinetics", "rate laws", "reaction rates", "chemical kinetics"],
+            "positive_semantic_space": "reaction rates, rate laws, activation energy, reaction order, catalysts, reaction mechanisms, chemical reaction speed, half-life",
+            "negative_semantic_space": "thermodynamics, equilibrium, organic synthesis, purification methods, analytical techniques"
+        }
+    },
+
+    "MAIN_QUERY_WEIGHT": 1.0,
+    "POSITIVE_ASPECT_WEIGHT": 0.5,
+    "NEGATIVE_ASPECT_WEIGHT": 0.7,
+    "ASPECT_SIMILARITY_THRESHOLD": 0.2
+}
