@@ -42,5 +42,5 @@
 
     # Define the command to run your main script
     # We will output to a specific 'output' directory inside /app
-    CMD ["python3", "run.py", "--input_file", "challenge1b_input.json", "--pdf_dir", "PDFs/", "--output", "/app/output/challenge1b_output.json"]
+    CMD ["python3", "run.py", "--input_file", "input/challenge1b_input.json", "--pdf_dir", "PDFs/", "--output", "/app/output/challenge1b_output.json"]
     
