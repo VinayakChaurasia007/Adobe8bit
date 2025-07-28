@@ -8,7 +8,8 @@ from collections import defaultdict, Counter
 import multiprocessing as mp
 from functools import partial
 import logging
-
+from langdetect import detect, DetectorFactory
+DetectorFactory.seed = 0  # make language detection deterministic
 logger = logging.getLogger(__name__)
 
 class PDFOutlineExtractor:
@@ -77,9 +78,14 @@ class PDFOutlineExtractor:
     def _process_page(self, doc: fitz.Document, page_num: int) -> List[Dict]:
         """Process a single page and extract text blocks with formatting"""
         try:
+            # page = doc[page_num]
+            # blocks = page.get_text("dict")["blocks"]
             page = doc[page_num]
-            blocks = page.get_text("dict")["blocks"]
+            text = page.get_text("text", flags=1)  # Extract using better encoding
             
+            # You can still get blocks if needed like this:
+            blocks = page.get_text("dict", flags=1)["blocks"]
+
             text_blocks = []
             
             for block in blocks:
@@ -156,24 +162,63 @@ class PDFOutlineExtractor:
  
          if not flat:
              return []
- 
+         # Detect language from a sample of text
+         sample_text = " ".join([b["text"] for b in flat[:50]])  # take first 50 spans
+         try:
+             lang = detect(sample_text)
+         except Exception:
+             lang = "en"  # default to English if detection fails
+
          # Estimate median body font size for ratio
          sizes = [b["font_size"] for b in flat]
          median_size = sorted(sizes)[len(sizes)//2]
- 
+         
+         stopwords_all = {
+            "en": {"the","and","of","in","to","with","a","for","on","is","this","that","by","an","be","are","as","at","from","it"},
+            "fr": {"le","la","et","de","des","en","pour","sur","avec","que"},
+            "es": {"el","la","y","de","en","para","con","que"},
+            "de": {"der","die","und","von","zu","mit","das","ist","für"},
+            "pt": {"o","a","e","de","em","para","com","que"},
+            "ru": {"и","в","не","на","с","что","по","для","как","это"},
+            "hi": {"और","के","का","में","को","यह","से","कि","है"},
+            "bn": {"এবং","এর","এ","কে","কে","এই","থেকে","যে","হয়"},
+            "zh": set(),  # Chinese headings won’t use stopwords
+            "ja": set(),
+         }
+
+         # per-language heading patterns
+         lang_headings = {
+             "en":    [r'^\d+(\.\d+)*\s+', r'^(Chapter|Section)\s+\d+'],
+             "fr":    [r'^Chapitre\s+\d+', r'^Section\s+\d+'],
+             "es":    [r'^Cap[ií]tulo\s+\d+', r'^Secci[oó]n\s+\d+'],
+             "de":    [r'^Kapitel\s+\d+', r'^Abschnitt\s+\d+'],
+             "pt":    [r'^Cap[ií]tulo\s+\d+', r'^Se[cç][ãa]o\s+\d+'],
+             "ru":    [r'^Глава\s+\d+', r'^Раздел\s+\d+'],
+             "hi":    [r'^अध्याय\s+\d+', r'^अनुभाग\s+\d+'],
+             "bn":    [r'^(অধ্যায়|অধ্যায়)\s+\d+', r'^অনুচ্ছেদ\s+\d+'],
+             "zh": [
+                       r'^第[一二三四五六七八九十百千万0-9]+章',
+                       r'^第[一二三四五六七八九十百千万0-9]+节',
+                       r'^[\u4e00-\u9fff]{2,10}$'  # 2–10 Chinese characters line (common for section titles)
+                   ],
+
+             "ja":    [r'^第\d+章',    r'^第\d+節'], 
+         }
          # Helpers
-         stopwords = set([
-             "the","and","of","in","to","with","a","for","on","is","this",
-             "that","by","an","be","are","as","at","from","it"
-         ])
+         sw_list = stopwords_all.get(lang, stopwords_all["en"])
+
  
          headings = []
          seen = set()
  
          for blk in flat:
              text = blk["text"]
-             words = text.split()
-             wc = len(words)
+             if lang == "zh":
+               wc = len(text)  # Approximate: each character is a word
+             else:
+                 words = text.split()
+                 wc = len(words)
+
              if wc == 0:
                  continue
 
@@ -211,7 +256,12 @@ class PDFOutlineExtractor:
              if re.match(r'^(Chapter|Section)\s+\d+', text, re.IGNORECASE):
                  score += 3
                  lvl = "H1"
- 
+             # Multilingual heading patterns
+             for pattern in lang_headings.get(lang, lang_headings["en"]):
+                 if re.match(pattern, text, re.IGNORECASE):
+                     score += 3
+                     lvl = lvl or "H1"
+                     break
              # 4) ALL CAPS or Title Case
              if text.isupper() and wc <= 6:
                  score += 1
@@ -219,11 +269,14 @@ class PDFOutlineExtractor:
              elif text.istitle() and wc <= 5:
                  score += 1
                  lvl = lvl or "H3"
- 
+             
              # 5) Stop‑word ratio
-             sw_count = sum(1 for w in words if w.lower() in stopwords)
-             if sw_count / wc < 0.3:
-                 score += 1
+            #  sw_count = sum(1 for w in words if w.lower() in stopwords)
+            #  if sw_count / wc < 0.3:
+            #      score += 1
+             sw_count = sum(1 for w in words if w.lower() in sw_list)
+             if wc and sw_count / wc < 0.3:
+                score += 1
  
              # 6) Word count between 2 and 10
              if 2 <= wc <= 10:
